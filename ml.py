@@ -28,7 +28,7 @@ sns.set()
 matplotlib.use('Qt5Agg', force=True)
 
 
-class FeatureSelector:
+class GenericModeling:
     model_names = ['RidgeClassifier', 'Lasso', 'LR', 'Tree', 'RF', 'Gradient Boost']
     param_grid_ridge = [{'solver': ['svd', 'cholesky', 'lsqr'], 'alpha': [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1]}]
     param_grid_lasso = [{'alpha': [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1], 'fit_intercept': [True, False]}]
@@ -251,7 +251,8 @@ class FeatureSelector:
         plt.show()
 
 
-def select_features():
+# Sample use of the GenericModeling class
+def run_generic_modeling():
     # Load and process the breast cancer dataset
     breast_cancer = load_breast_cancer()
     breast_cancer_data = pd.DataFrame(breast_cancer.data, columns=breast_cancer.feature_names)
@@ -290,11 +291,11 @@ def select_features():
 
     data = pd.concat([combined_data, combined_targets], axis=1)
     dependent_variables = ['breast_cancer_target', 'iris_target', 'diabetes_target']
-    selected_features = FeatureSelector(data=data, dependent_variables=dependent_variables)
+    selected_features = GenericModeling(data=data, dependent_variables=dependent_variables)
     # selected_features.learn()
     selected_features.amram_intelligence(output_sizes=[1, 3, 2])
     return selected_features
 
 
 if __name__ == '__main__':
-    important_features = select_features()
+    important_features = run_generic_modeling()
