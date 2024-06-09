@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import torch
 import torchvision
@@ -9,18 +10,22 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import MNIST
-
-import matplotlib.pyplot as plt
-
 import pytorch_lightning as pl
 
+import matplotlib
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# matplotlib.use('Qt5Agg', force=True)
+sns.set()
 
 random_seed = 42
 torch.manual_seed(random_seed)
 
-BATCH_SIZE=128
+BATCH_SIZE = 128
 AVAIL_GPUS = min(1, torch.cuda.device_count())
-NUM_WORKERS=int(os.cpu_count() / 2)
+NUM_WORKERS = int(os.cpu_count() / 2)
+
 
 class MNISTDataModule(pl.LightningDataModule):
     def __init__(self, data_dir="./data",
@@ -75,7 +80,6 @@ class Discriminator(nn.Module):
     def forward(self, x):
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        # Flatten the tensor so it can be fed into the FC layers
         x = x.view(-1, 320)
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
@@ -201,9 +205,18 @@ class GAN(pl.LightningModule):
 
 
 if __name__ == '__main__':
-    dm = MNISTDataModule()
+    epochs = 25
+    model_dir = str(Path(__file__).parent.joinpath('models'))
+    model_path = f"{model_dir}/gan_mnist_{epochs}model.ckpt"
     model = GAN()
-    model.plot_imgs()
-    trainer = pl.Trainer(devices=AVAIL_GPUS, max_epochs=100)
-    trainer.fit(model, dm)
+    if not Path(model_path).exists():
+        dm = MNISTDataModule()
+        model.plot_imgs()
+        trainer = pl.Trainer(devices=AVAIL_GPUS, max_epochs=epochs)
+        trainer.fit(model, dm)
+        trainer.save_checkpoint(model_path)
+    else:
+        loaded_model = GAN.load_from_checkpoint(model_path)
+        loaded_model.eval()
+        loaded_model.plot_imgs()
 
